@@ -1,6 +1,9 @@
 #![cfg_attr(feature = "asm", feature(asm_const))]
 
 mod arithmetic;
+pub mod hash_to_curve;
+pub mod multiexp;
+pub mod serde;
 
 pub mod bn256;
 pub mod pairing;
