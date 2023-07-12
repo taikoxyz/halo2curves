@@ -29,6 +29,7 @@ new_curve_impl!(
     (pub),
     G1,
     G1Affine,
+    G1JacExt,
     false,
     Fq,
     Fr,

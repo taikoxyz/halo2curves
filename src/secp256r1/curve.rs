@@ -68,6 +68,7 @@ new_curve_impl!(
     (pub),
     Secp256r1,
     Secp256r1Affine,
+    G1JacExt,
     true,
     Fp,
     Fq,
