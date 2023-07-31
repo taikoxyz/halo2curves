@@ -393,7 +393,7 @@ macro_rules! new_curve_impl {
             pub y: $base,
         }
 
-        #[derive(Copy, Clone, Debug, PartialEq)]
+        #[derive(Copy, Clone, Debug)]
         #[cfg_attr(feature = "derive_serde", derive(Serialize, Deserialize))]
         $($privacy)* struct $name_jac_ext {
             pub x: $base,
@@ -403,13 +403,12 @@ macro_rules! new_curve_impl {
         }
 
 
-
         impl_compressed!();
         impl_uncompressed!();
 
 
 
-        // homogenous
+        // homogeneous
         impl $name {
             pub fn generator() -> Self {
                 let generator = $name_affine::generator();
@@ -477,40 +476,8 @@ macro_rules! new_curve_impl {
                     }
                 }
             }
-
-            /// Mixed-type point doubling from affine to Extended Jacobian.
-            /// http://www.hyperelliptic.org/EFD/g1p/auto-shortw-xyzz.html#doubling-mdbl-2008-s-1
-            pub fn double(self) -> $name_jac_ext {
-                // p
-                let p = self;
-                let x1 = p.x;
-                let y1 = p.y;
-                // Note that implicitly `zz == zz == $base::one()`
-
-                // curve constants
-                let a = Self::curve_constant_a();
-
-                // intermediates
-                let u = y1.double();
-                let v = u.square();
-                let w = u*v;
-                let s = x1 * v;
-                let m = (x1.double()+x1) + a;
-
-                // p+p
-                let x3 = m.square() - s.double();
-                let y3 = m*(s-x3) - w*y1;
-                let zz3 = v;
-                let zzz3 = w;
-
-                $name_jac_ext {
-                    x: x3,
-                    y: y3,
-                    zz: zz3,
-                    zzz: zzz3
-                }
-            }
         }
+
 
         impl $name_jac_ext {
             pub fn generator() -> Self {
@@ -531,14 +498,14 @@ macro_rules! new_curve_impl {
 
         // Jacobian implementations
 
-        // From affine to homogenous
+        // From affine to homogeneous
         impl<'a> From<&'a $name_affine> for $name {
             fn from(p: &'a $name_affine) -> $name {
                 p.to_curve()
             }
         }
 
-        // From affine to homogenous
+        // From affine to homogeneous
         impl From<$name_affine> for $name {
             fn from(p: $name_affine) -> $name {
                 p.to_curve()
@@ -619,7 +586,7 @@ macro_rules! new_curve_impl {
             }
 
             fn jacobian_coordinates(&self) -> ($base, $base, $base) {
-                // Homogenous to Jacobian
+                // Homogeneous to Jacobian
                 let x = self.x * self.z;
                 let y = self.y * self.z.square();
                 (x, y, self.z)
@@ -648,7 +615,7 @@ macro_rules! new_curve_impl {
             }
 
             fn new_jacobian(x: Self::Base, y: Self::Base, z: Self::Base) -> CtOption<Self> {
-                // Jacobian to homogenous
+                // Jacobian to homogeneous
                 let z_inv = z.invert().unwrap_or($base::zero());
                 let p_x = x * z_inv;
                 let p_y = y * z_inv.square();
@@ -772,7 +739,7 @@ macro_rules! new_curve_impl {
                 $name_jac_ext::from(affine)
             }
 
-            /// http://www.hyperelliptic.org/EFD/g1p/auto-shortw-xyzz.html#doubling-dbl-2008-s-1
+            /// <http://www.hyperelliptic.org/EFD/g1p/auto-shortw-xyzz.html#doubling-dbl-2008-s-1>
             #[inline]
             fn double(&self) -> Self {
 
@@ -791,7 +758,8 @@ macro_rules! new_curve_impl {
                 let v = u.square();
                 let w = u*v;
                 let s = x1 * v;
-                let m = (x1.double()+x1) + a*zz1.square();
+                let x1_sqr = x1.square();
+                let m = (x1_sqr.double()+x1_sqr) + a*zz1.square();
 
                 // p+p
                 let x3 = m.square() - s.double();
@@ -988,7 +956,7 @@ macro_rules! new_curve_impl {
                 self.x.is_zero() & self.y.is_zero()
             }
 
-            // Return copy in homogenous coordinates
+            // Return copy in homogeneous coordinates
             fn to_curve(&self) -> Self::Curve {
                 let tmp = $name {
                     x: self.x,
@@ -1061,8 +1029,11 @@ macro_rules! new_curve_impl {
         impl_binops_multiplicative_mixed!($name_affine, $scalar, $name);
 
         impl_binops_additive!($name_jac_ext, $name_jac_ext);
+        //impl_binops_additive_specify_output!($name_jac_ext, $name_jac_ext, $name);
+        impl_binops_additive!($name_jac_ext, $name);
         impl_binops_additive!($name_jac_ext, $name_affine);
         impl_binops_multiplicative!($name_jac_ext, $scalar);
+
 
         impl<'a> Neg for &'a $name {
             type Output = $name;
@@ -1305,7 +1276,14 @@ macro_rules! new_curve_impl {
             }
         }
 
-        impl cmp::Eq for $name_jac_ext {}
+        // Extended Jacobian implementations
+
+        impl Default for $name_jac_ext {
+            #[inline]
+            fn default() -> $name_jac_ext {
+                $name_jac_ext::identity()
+            }
+        }
 
         impl<'a> Neg for &'a $name_jac_ext {
             type Output = $name_jac_ext;
@@ -1346,7 +1324,7 @@ macro_rules! new_curve_impl {
         impl<'a, 'b> Add<&'a $name_jac_ext> for &'b $name_jac_ext {
             type Output = $name_jac_ext;
 
-            /// https://www.hyperelliptic.org/EFD/g1p/auto-shortw-xyzz.html#addition-add-2008-s
+            /// <https://www.hyperelliptic.org/EFD/g1p/auto-shortw-xyzz.html#addition-add-2008-s>
             #[inline]
             fn add(self, rhs: &'a $name_jac_ext) -> $name_jac_ext {
                 if self.is_identity().into() { return *rhs; };
@@ -1407,7 +1385,7 @@ macro_rules! new_curve_impl {
             type Output = $name_jac_ext;
 
             /// Mixed addition
-            /// http://www.hyperelliptic.org/EFD/g1p/auto-shortw-xyzz.html#addition-madd-2008-s
+            /// <http://www.hyperelliptic.org/EFD/g1p/auto-shortw-xyzz.html#addition-madd-2008-s>
             #[inline]
             fn add(self, rhs: &'a $name_affine) -> $name_jac_ext {
                 if rhs.is_identity().into() { return *self };
@@ -1461,6 +1439,14 @@ macro_rules! new_curve_impl {
             }
         }
 
+        impl<'a, 'b> Add<&'a $name> for &'b $name_jac_ext {
+            type Output = $name_jac_ext;
+
+            fn add(self, rhs: &'a $name) -> $name_jac_ext {
+                self + *rhs
+            }
+        }
+
         impl<'a, 'b> Sub<&'a $name_jac_ext> for &'b $name_jac_ext {
             type Output = $name_jac_ext;
 
@@ -1479,6 +1465,14 @@ macro_rules! new_curve_impl {
             }
         }
 
+        impl<'a, 'b> Sub<&'a $name> for &'b $name_jac_ext {
+            type Output = $name_jac_ext;
+
+            #[inline]
+            fn sub(self, other: &'a $name) -> $name_jac_ext {
+                self + (-other)
+            }
+        }
 
         impl<'a, 'b> Mul<&'b $scalar> for &'a $name_jac_ext {
             type Output = $name_jac_ext;
@@ -1496,26 +1490,29 @@ macro_rules! new_curve_impl {
                     .to_repr()
                     .iter()
                     .rev()
-                    .flat_map(|byte| (0..8).rev().map(move |i| Choice::from((byte >> i) & 1u8)))
+                    .flat_map(|byte| (0..8).rev().map(move |i| ((byte >> i) & 1u8)))
                 {
                     acc = acc.double();
-                    acc = $name_jac_ext::conditional_select(&acc, &(acc + self), bit);
+                    acc = if bit != 0u8  { acc } else { self + acc };
                 }
 
                 acc
             }
         }
 
-        // From Extended Jacobian to homogenous
+        // From Extended Jacobian to homogeneous
         impl<'a> From<&'a $name_jac_ext> for $name {
             #[inline]
             fn from(p: &'a $name_jac_ext) -> $name {
-                let tmp = $name {
+                if p.zz == $base::zero() {
+                    return $name::identity();
+                } else {
+                 return $name {
                     x: p.x * p.zzz,
                     y: p.y * p.zz,
                     z: p.zzz * p.zz,
                 };
-                $name::conditional_select(&tmp, &$name::identity(), tmp.is_identity())
+                }
             }
         }
 
@@ -1536,7 +1533,12 @@ macro_rules! new_curve_impl {
                     zz: $base::one(),
                     zzz: $base::one(),
                 };
-                $name_jac_ext::conditional_select(&tmp, &$name_jac_ext::identity(), tmp.is_identity())
+                if tmp.zz == $base::zero() {
+                    return $name_jac_ext::identity();
+                }
+                else {
+                    return tmp;
+                }
             }
         }
 
@@ -1547,11 +1549,32 @@ macro_rules! new_curve_impl {
             }
         }
 
-        impl Default for $name_jac_ext {
+        impl From<$name> for $name_jac_ext {
             #[inline]
-            fn default() -> $name_jac_ext {
-                $name_jac_ext::identity()
+            fn from(p: $name) -> $name_jac_ext {
+                $name_jac_ext::identity() +  $name_affine::from(p)
             }
         }
-    };
+
+        impl CurveJacExt for $name_affine {
+            type ExtendedJacobianCoordinates = $name_jac_ext;
+        }
+
+        impl PartialEq for $name_jac_ext {
+            fn eq(&self, other: &Self) -> bool {
+                let p = self;
+                let q = other;
+
+                if  p.x*q.zz != q.x*p.zz  {return false;}
+                if p.y*q.zzz != q.y*p.zzz {return false;}
+
+                let c: bool = p.zz == $base::zero();
+                let d: bool = q.zz == $base::zero();
+                return !(c ^ d);
+            }
+        }
+
+        impl cmp::Eq for $name_jac_ext {}
+
+    }
 }

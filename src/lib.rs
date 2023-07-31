@@ -11,6 +11,7 @@ pub mod pasta;
 pub mod secp256k1;
 pub mod serde;
 
+pub mod curve_jac_ext;
 #[macro_use]
 mod derive;
 pub use arithmetic::CurveAffineExt;
