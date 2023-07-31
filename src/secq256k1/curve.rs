@@ -1,3 +1,4 @@
+use crate::curve_jac_ext::CurveJacExt;
 use crate::ff::WithSmallOrderMulGroup;
 use crate::ff::{Field, PrimeField};
 use crate::group::Curve;
@@ -41,7 +42,7 @@ new_curve_impl!(
     (pub),
     Secq256k1,
     Secq256k1Affine,
-    G1JacExt,
+    Secq256k1JacExt,
     true,
     Fq,
     Fp,

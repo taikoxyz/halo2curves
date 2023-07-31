@@ -2,6 +2,7 @@ use crate::arithmetic::mul_512;
 use crate::arithmetic::sbb;
 use crate::arithmetic::CurveEndo;
 use crate::arithmetic::EndoParameters;
+use crate::curve_jac_ext::CurveJacExt;
 use crate::ff::WithSmallOrderMulGroup;
 use crate::ff::{Field, PrimeField};
 use crate::group::Curve;

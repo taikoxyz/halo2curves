@@ -10,6 +10,7 @@ pub mod secp256k1;
 pub mod secp256r1;
 pub mod secq256k1;
 
+pub mod curve_jac_ext;
 #[macro_use]
 mod derive;
 pub use pasta_curves::arithmetic::{Coordinates, CurveAffine, CurveExt};
