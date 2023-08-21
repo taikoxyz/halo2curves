@@ -5,6 +5,7 @@ use crate::arithmetic::EndoParameters;
 use crate::bn256::Fq;
 use crate::bn256::Fq2;
 use crate::bn256::Fr;
+use crate::curve_jac_ext::CurveJacExt;
 use crate::endo;
 use crate::ff::WithSmallOrderMulGroup;
 use crate::ff::{Field, PrimeField};
@@ -32,6 +33,7 @@ new_curve_impl!(
     (pub),
     G1,
     G1Affine,
+    G1JacExt,
     false,
     Fq,
     Fr,
@@ -46,6 +48,7 @@ new_curve_impl!(
     (pub),
     G2,
     G2Affine,
+    G2JacExt,
     false,
     Fq2,
     Fr,
