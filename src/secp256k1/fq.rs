@@ -179,18 +179,9 @@ impl ff::Field for Fq {
         self.square()
     }
 
-    /// Computes the multiplicative inverse of this element,
-    /// failing if the element is zero.
-    fn invert(&self) -> CtOption<Self> {
-        let tmp = self.pow_vartime([
-            0xbfd25e8cd036413f,
-            0xbaaedce6af48a03b,
-            0xfffffffffffffffe,
-            0xffffffffffffffff,
-        ]);
-
-        CtOption::new(tmp, !self.ct_eq(&Self::zero()))
-    }
+    /// Returns the multiplicative inverse of the
+    /// element. If it is zero, the method fails.
+    fn invert(&self) -> CtOption<Self> { self.invert() }
 
     fn pow_vartime<S: AsRef<[u64]>>(&self, exp: S) -> Self {
         let mut res = Self::one();
