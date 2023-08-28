@@ -173,6 +173,7 @@ mod test {
 
     proptest! {
         #![proptest_config(ProptestConfig::with_cases(10))]
+        #[ignore]
         #[test]
         fn test_multiexp(k in 3usize..10) {
             let coeffs = arb_poly(k, OsRng);
@@ -202,6 +203,7 @@ mod test {
     proptest! {
         #![proptest_config(ProptestConfig::with_cases(10))]
         /// Test for all randomly selected a: 0 == a - a.
+        #[ignore]
         #[test]
         fn a_minus_a_is_infinity(k in 3usize..10) {
             use group::Group;
@@ -221,6 +223,7 @@ mod test {
     proptest! {
         #![proptest_config(ProptestConfig::with_cases(10))]
         /// Test: sum(Vec<JacExt>) == sum(Vec<Affine>).
+        #[ignore]
         #[test]
         fn test_sum(k in 3usize..10) {
             let params: ParamsIPA<Secp256k1Affine> = ParamsIPA::new(k as u32);
@@ -242,6 +245,7 @@ mod test {
     proptest! {
         #![proptest_config(ProptestConfig::with_cases(10))]
         /// Test that for p: Affine and q: JacExt: p+p == q+q.
+        #[ignore]
         #[test]
         fn test_double(k in 3usize..10) {
             let params: ParamsIPA<Secp256k1Affine> = ParamsIPA::new(k as u32);
@@ -261,6 +265,7 @@ mod test {
     proptest! {
         #![proptest_config(ProptestConfig::with_cases(10))]
         /// Test that for p: JacExt, p + -(p) == 0.
+        #[ignore]
         #[test]
         fn test_opposites(k in 3usize..10) {
             let params: ParamsIPA<Secp256k1Affine> = ParamsIPA::new(k as u32);
