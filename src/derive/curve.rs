@@ -485,10 +485,6 @@ macro_rules! new_curve_impl {
                 $name_jac_ext::from(generator)
             }
 
-            pub const fn curve_constant_a() -> $base {
-                $name_affine::curve_constant_a()
-            }
-
             pub const fn curve_constant_b() -> $base {
                 $name_affine::curve_constant_b()
             }
@@ -756,10 +752,9 @@ macro_rules! new_curve_impl {
                 let w = u*v;
                 let s = x1 * v;
                 let x1_sqr = x1.square();
-
                 // For the curves we use, the curve constant `a` is always zero,
                 // so we can leave out the last term.
-                let m = x1_sqr.double()+x1_sqr;
+                let m = (x1_sqr.double()+x1_sqr); // + a*zz1.square();
 
                 // p+p
                 let x3 = m.square() - s.double();

@@ -1,7 +1,7 @@
 #![cfg_attr(feature = "asm", feature(asm_const))]
 
 mod arithmetic;
-pub mod hash_to_curve;
+//pub mod hash_to_curve;
 pub mod multiexp;
 pub mod serde;
 
@@ -9,7 +9,7 @@ pub mod bn256;
 pub mod pairing;
 pub mod pasta;
 pub mod secp256k1;
-pub mod serde;
+//pub mod serde;
 
 pub mod curve_jac_ext;
 #[macro_use]
