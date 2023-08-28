@@ -746,15 +746,21 @@ macro_rules! new_curve_impl {
                 let zz1 = p.zz;
                 let zzz1 = p.zzz;
 
+                // curve constants
+                const A: $base = $name_jac_ext::curve_constant_a();
+                debug_assert_eq!(A, $base::zero());
+
                 // intermediates
                 let u = y1.double();
                 let v = u.square();
                 let w = u*v;
                 let s = x1 * v;
                 let x1_sqr = x1.square();
+
                 // For the curves we use, the curve constant `a` is always zero,
                 // so we can leave out the last term.
-                let m = (x1_sqr.double()+x1_sqr); // + a*zz1.square();
+                // was: let m = x1_sqr.double()+x1_sqr + A*zz1.square();
+                let m = x1_sqr.double()+x1_sqr;
 
                 // p+p
                 let x3 = m.square() - s.double();
