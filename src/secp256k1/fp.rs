@@ -181,7 +181,9 @@ impl ff::Field for Fp {
 
     /// Returns the multiplicative inverse of the
     /// element. If it is zero, the method fails.
-    fn invert(&self) -> CtOption<Self> { self.invert() }
+    fn invert(&self) -> CtOption<Self> {
+        self.invert()
+    }
 
     fn pow_vartime<S: AsRef<[u64]>>(&self, exp: S) -> Self {
         let mut res = Self::one();
