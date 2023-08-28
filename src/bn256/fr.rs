@@ -233,7 +233,9 @@ impl ff::Field for Fr {
 
     /// Returns the multiplicative inverse of the
     /// element. If it is zero, the method fails.
-    fn invert(&self) -> CtOption<Self> { self.invert() }
+    fn invert(&self) -> CtOption<Self> {
+        self.invert()
+    }
 
     fn sqrt(&self) -> CtOption<Self> {
         /// `(t - 1) // 2` where t * 2^s + 1 = p with t odd.

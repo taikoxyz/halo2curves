@@ -219,7 +219,9 @@ impl ff::Field for Fq {
 
     /// Returns the multiplicative inverse of the
     /// element. If it is zero, the method fails.
-    fn invert(&self) -> CtOption<Self> { self.invert() }
+    fn invert(&self) -> CtOption<Self> {
+        self.invert()
+    }
 }
 
 impl ff::PrimeField for Fq {
