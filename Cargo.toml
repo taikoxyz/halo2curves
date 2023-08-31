@@ -36,12 +36,12 @@ serde = { version = "1.0", default-features = false, optional = true }
 serde_arrays = { version = "0.1.0", optional = true }
 blake2b_simd = "1"
 #halo2_proofs = { git = "https://github.com/privacy-scaling-explorations/halo2.git", features = ["circuit-params"], tag = "v2023_04_20" }
-halo2_proofs = { git = "https://github.com/taikoxyz/halo2" }
+#halo2_proofs = { git = "https://github.com/taikoxyz/halo2" }
 num_cpus = "1.15.0"
 rayon = "1.7.0"
 
-[patch.'https://github.com/taikoxyz/halo2']
-halo2_proofs = { path = "../halo2/halo2_proofs" }
+#[patch.'https://github.com/taikoxyz/halo2']
+#halo2_proofs = { path = "../halo2/halo2_proofs" }
 
 
 [features]
@@ -63,8 +63,4 @@ codegen-units = 1
 
 [[bench]]
 name = "less_than"
-harness = false
-
-[[bench]]
-name = "msm"
 harness = false
