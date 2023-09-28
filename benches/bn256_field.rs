@@ -1,8 +1,7 @@
 use criterion::{black_box, criterion_group, criterion_main, Criterion, Throughput};
-use halo2curves::bn256::*;
-use halo2curves::ff::Field;
-use rand::SeedableRng;
+use halo2curves::{bn256::*, ff::Field, legendre::Legendre};
 use rand_xorshift::XorShiftRng;
+use rand::SeedableRng;
 
 pub fn bench_bn256_field(c: &mut Criterion) {
     let mut rng = XorShiftRng::from_seed([
@@ -42,6 +41,12 @@ pub fn bench_bn256_field(c: &mut Criterion) {
     });
     group.bench_function("bn256_fq_invert", |bencher| {
         bencher.iter(|| black_box(&a).invert())
+    });
+    group.bench_function("bn256_fq_legendre", |bencher| {
+        bencher.iter(|| black_box(&a).legendre())
+    });
+    group.bench_function("bn256_fq_jacobi", |bencher| {
+        bencher.iter(|| black_box(&a).jacobi())
     });
 }
 
