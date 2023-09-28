@@ -1,7 +1,7 @@
 use criterion::{black_box, criterion_group, criterion_main, Criterion, Throughput};
 use halo2curves::{bn256::*, ff::Field, legendre::Legendre};
-use rand_xorshift::XorShiftRng;
 use rand::SeedableRng;
+use rand_xorshift::XorShiftRng;
 
 pub fn bench_bn256_field(c: &mut Criterion) {
     let mut rng = XorShiftRng::from_seed([
