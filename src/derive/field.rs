@@ -52,7 +52,7 @@ macro_rules! field_common {
                 }
             }
 
-            // Returns the Jacobi symbol, where the numerator and denominator
+            // Returns the Legendre symbol, where the numerator and denominator
             // are the element and the characteristic of the field, respectively.
             pub fn jacobi(&self) -> i64 {
                 $crate::pornin::jacobi::<5>(&self.0, &$modulus.0)
