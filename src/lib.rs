@@ -1,7 +1,7 @@
 mod arithmetic;
 mod bernsteinyang;
-mod pornin;
 pub mod hash_to_curve;
+mod pornin;
 #[macro_use]
 pub mod legendre;
 pub mod serde;

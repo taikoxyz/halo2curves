@@ -1,5 +1,5 @@
 use core::cmp::PartialEq;
-use std::ops::{Add, Mul, Neg, Sub, Shr};
+use std::ops::{Add, Mul, Neg, Shr, Sub};
 
 /// Big signed (64 * L)-bit integer type, whose variables store
 /// numbers in the two's complement code as arrays of 64-bit chunks.
@@ -38,7 +38,7 @@ impl<const L: usize> LInt<L> {
     }
 
     /// Returns a tuple representing the sum of the first two arguments and the bit
-    /// described by the third argument. The first element of the tuple is this sum 
+    /// described by the third argument. The first element of the tuple is this sum
     /// modulo 2^64, the second one indicates whether the sum is no less than 2^64
     #[inline]
     fn sum(first: u64, second: u64, carry: bool) -> (u64, bool) {
@@ -69,8 +69,10 @@ impl<const L: usize> Shr<u32> for &LInt<L> {
     /// The specified bit quantity the number is shifted by must lie in {1, 2, ..., 63}.
     /// For the quantities outside of the range, the behavior of the method is undefined
     fn shr(self, bits: u32) -> Self::Output {
-        debug_assert!((bits > 0) && (bits < 64),
-            "Cannot shift by 0 or more than 63 bits!");
+        debug_assert!(
+            (bits > 0) && (bits < 64),
+            "Cannot shift by 0 or more than 63 bits!"
+        );
         let (mut data, right) = ([0; L], u64::BITS - bits);
         for i in 0..(L - 1) {
             data[i] = (self.0[i] >> bits) | (self.0[i + 1] << right);
@@ -79,7 +81,7 @@ impl<const L: usize> Shr<u32> for &LInt<L> {
         if self.is_negative() {
             data[L - 1] |= u64::MAX << right;
         }
-        Self::Output { 0: data } 
+        Self::Output { 0: data }
     }
 }
 
@@ -258,23 +260,27 @@ impl<const L: usize> Mul<LInt<L>> for i64 {
 /// of taking the 33 high and 31 low bits of the n-bit representation of an argument,
 /// the 32 high and 32 low bits are taken
 fn approximate<const L: usize>(x: &LInt<L>, y: &LInt<L>) -> (u64, u64, bool) {
-    debug_assert!(!(x.is_negative() || y.is_negative()),
-        "Both the arguments must be non-negative!");
-    debug_assert!((*x != LInt::ZERO) || (*y != LInt::ZERO),
-        "At least one argument must be non-zero!");     
-    let mut i = L - 1;  
-    while (x.0[i] == 0) && (y.0[i] == 0) { 
-        i -= 1; 
+    debug_assert!(
+        !(x.is_negative() || y.is_negative()),
+        "Both the arguments must be non-negative!"
+    );
+    debug_assert!(
+        (*x != LInt::ZERO) || (*y != LInt::ZERO),
+        "At least one argument must be non-zero!"
+    );
+    let mut i = L - 1;
+    while (x.0[i] == 0) && (y.0[i] == 0) {
+        i -= 1;
     }
     if i == 0 {
         return (x.0[0], y.0[0], true);
-    }   
+    }
     let mut h = (x.0[i], y.0[i]);
     let z = h.0.leading_zeros().min(h.1.leading_zeros());
     h = (h.0 << z, h.1 << z);
     if z > 32 {
         h.0 |= x.0[i - 1] >> z;
-        h.1 |= y.0[i - 1] >> z;    
+        h.1 |= y.0[i - 1] >> z;
     }
     let h = (h.0 & u64::MAX << 32, h.1 & u64::MAX << 32);
     let l = (x.0[0] & u64::MAX >> 32, y.0[0] & u64::MAX >> 32);
@@ -296,14 +302,13 @@ fn jacobinary(mut n: u64, mut d: u64, mut t: u64) -> i64 {
             }
             n = (n - d) >> 1;
             t ^= d ^ d >> 1;
-        }
-        else {
+        } else {
             let z = n.trailing_zeros();
             t ^= (d ^ d >> 1) & (z << 1) as u64;
-            n >>= z;          
+            n >>= z;
         }
     }
-    return ((d == 1) as i64) * (1 - (t & 2) as i64);
+    (d == 1) as i64 * (1 - (t & 2) as i64)
 }
 
 /// Returns the Jacobi symbol ("n" / "d") computed by means of the modification
@@ -319,21 +324,23 @@ fn jacobinary(mut n: u64, mut d: u64, mut t: u64) -> i64 {
 /// and some original optimizations. Only these differences have been commented;
 /// the aforesaid Pornin's method and the used ideas of M. Hamburg were given here:
 /// - T. Pornin, "Optimized Binary GCD for Modular Inversion",
-/// https://eprint.iacr.org/2020/972.pdf 
+/// https://eprint.iacr.org/2020/972.pdf
 /// - M. Hamburg, "Computing the Jacobi symbol using Bernstein-Yang",
 /// https://eprint.iacr.org/2021/1271.pdf
 pub fn jacobi<const L: usize>(n: &[u64], d: &[u64]) -> i64 {
     // Instead of the variable "j" taking the values from {-1, 1} and satysfying
-    // at the end of the outer loop iteration the equation J = "j" * ("n" / |"d"|) 
+    // at the end of the outer loop iteration the equation J = "j" * ("n" / |"d"|)
     // for the modified Jacobi symbol ("n" / |"d"|) and the sought Jacobi symbol J,
     // we store the sign bit of "j" in the second-lowest bit of "t" for optimization
     // purposes. This approach was influenced by the paper by M. Hamburg
-    let (mut n, mut d, mut t) = (LInt::<L>::new(n), LInt::<L>::new(d), 0u64);   
+    let (mut n, mut d, mut t) = (LInt::<L>::new(n), LInt::<L>::new(d), 0u64);
     debug_assert!(d.0[0] & 1 > 0, "The second argument must be odd!");
-    debug_assert!(n.0[L - 1].leading_zeros().min(d.0[L - 1].leading_zeros()) >= 31,
-        "Both the arguments must be less than 2 ^ (64 * L - 31)!"); 
+    debug_assert!(
+        n.0[L - 1].leading_zeros().min(d.0[L - 1].leading_zeros()) >= 31,
+        "Both the arguments must be less than 2 ^ (64 * L - 31)!"
+    );
     loop {
-        // The inner loop performs 30 iterations instead of 31 ones in the aforementioned 
+        // The inner loop performs 30 iterations instead of 31 ones in the aforementioned
         // Pornin's method, and the "approximations" of "n" and "d" retain 32 of the lowest
         // bits instead of 31 in that method. These modifications allow the values of the
         // "approximation" variables to be equal modulo 8 to the corresponding "precise"
@@ -371,8 +378,7 @@ pub fn jacobi<const L: usize>(n: &[u64], d: &[u64]) -> i64 {
                 // The modified Jacobi symbol (2 / |y|) is -1, iff y mod 8 is {3, 5}
                 t ^= b ^ b >> 1;
                 i -= 1;
-            }
-            else {
+            } else {
                 // Performing the batch of sequential iterations, which divide "a" by 2
                 let z = i.min(a.trailing_zeros());
                 // The modified Jacobi symbol (2 / |y|) is -1, iff y mod 8 is {3, 5}. However,
@@ -382,7 +388,7 @@ pub fn jacobi<const L: usize>(n: &[u64], d: &[u64]) -> i64 {
                 a >>= z;
                 i -= z;
             }
-        } 
+        }
         (n, d) = ((&n * u.0 + &d * u.1) >> 30, (&n * v.0 + &d * v.1) >> 30);
 
         // This fragment is present to guarantee the correct behavior of the function
@@ -400,9 +406,9 @@ pub fn jacobi<const L: usize>(n: &[u64], d: &[u64]) -> i64 {
             // and cannot become negative simultaneously with "n", the value of "d" is positive.
             // The modified Jacobi symbol (-1 / |y|) for a positive y is -1, iff y mod 4 = 3
             t ^= d.0[0];
-            n = -n;      
+            n = -n;
         } else if d.is_negative() {
-            // The modified Jacobi symbols (x / |y|) and (x / |-y|) are equal, so "t" is not updated 
+            // The modified Jacobi symbols (x / |y|) and (x / |-y|) are equal, so "t" is not updated
             d = -d;
         }
     }
