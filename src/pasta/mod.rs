@@ -44,7 +44,7 @@ impl crate::CurveAffineExt for EqAffine {
         //     y: self.y,
         // }
     }
-    
+
     fn batch_add<const COMPLETE: bool, const LOAD_POINTS: bool>(
         _: &mut [Self],
         _: &[u32],

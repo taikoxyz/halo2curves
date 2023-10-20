@@ -26,12 +26,12 @@
 //! are done. To do this efficiently we first build up an addition tree that sets everything
 //! up correctly per round. We then process each addition tree per round.
 
-use core::slice;
+use crate::arithmetic::CurveAffineExt;
 use crate::multicore;
 use ark_std::{end_timer, start_timer};
+use core::slice;
 use ff::PrimeField;
 use group::Group;
-use crate::arithmetic::CurveAffineExt;
 
 fn num_bits(value: usize) -> usize {
     (0usize.leading_zeros() - value.leading_zeros()) as usize
@@ -233,7 +233,7 @@ impl<C: CurveAffineExt> MultiExp<C> {
         let bases = &self.bases[..coeffs.len() * 2];
 
         let num_threads = multicore::current_num_threads();
-        let _timer_desc =  format!("msm {} ({}) ({} threads)", coeffs.len(), c, num_threads);
+        let _timer_desc = format!("msm {} ({}) ({} threads)", coeffs.len(), c, num_threads);
         let start = start_timer!(|| _timer_desc);
         // if coeffs.len() >= 16 {
         let num_points = coeffs.len() * 2;
@@ -849,4 +849,186 @@ fn accumulate_buckets<C: CurveAffineExt>(
     results
         .iter()
         .fold(C::Curve::identity(), |acc, result| acc + result)
+}
+
+////////////////////////////////////////////////////////////////
+///
+///                         Tests
+///
+////////////////////////////////////////////////////////////////
+
+#[cfg(test)]
+use rand_xorshift::XorShiftRng;
+use crate::msm::best_multiexp;
+use crate::bn256::{Fr as Scalar, G1Affine as Point};
+use ff::Field;
+use maybe_rayon::current_thread_index;
+use maybe_rayon::prelude::{IntoParallelIterator, ParallelIterator};
+use rand_core::SeedableRng;
+use std::time::SystemTime;
+
+const SEED: [u8; 16] = [
+    0x59, 0x62, 0xbe, 0x5d, 0x76, 0x3d, 0x31, 0x8d, 0x17, 0xdb, 0x37, 0x32, 0x54, 0x06, 0xbc, 0xe5,
+];
+
+#[cfg(test)]
+fn generate_coefficients_and_curvepoints(k: u8) -> (Vec<Scalar>, Vec<Point>) {
+    let n: u64 = {
+        assert!(k < 64);
+        1 << k
+    };
+
+    println!("\n\nGenerating 2^{k} = {n} coefficients and curve points..",);
+    let timer = SystemTime::now();
+    let coeffs = (0..n)
+        .into_par_iter()
+        .map_init(
+            || {
+                let mut thread_seed = SEED;
+                let uniq = current_thread_index().unwrap().to_ne_bytes();
+                assert!(std::mem::size_of::<usize>() == 8);
+                for i in 0..uniq.len() {
+                    thread_seed[i] += uniq[i];
+                    thread_seed[i + 8] += uniq[i];
+                }
+                XorShiftRng::from_seed(thread_seed)
+            },
+            |rng, _| Scalar::random(rng),
+        )
+        .collect();
+    let bases = (0..n)
+        .into_par_iter()
+        .map_init(
+            || {
+                let mut thread_seed = SEED;
+                let uniq = current_thread_index().unwrap().to_ne_bytes();
+                assert!(std::mem::size_of::<usize>() == 8);
+                for i in 0..uniq.len() {
+                    thread_seed[i] += uniq[i];
+                    thread_seed[i + 8] += uniq[i];
+                }
+                XorShiftRng::from_seed(thread_seed)
+            },
+            |rng, _| Point::random(rng),
+        )
+        .collect();
+    let end = timer.elapsed().unwrap();
+    println!(
+        "Generating 2^{k} = {n} coefficients and curve points took: {} sec.\n\n",
+        end.as_secs()
+    );
+
+    (coeffs, bases)
+}
+
+#[test]
+#[ignore] // fails if bases are not linearly independent
+fn test_multiexp_simple() {
+    let k = 15;
+
+    let (coeffs, bases) = generate_coefficients_and_curvepoints(k);
+
+    let res_base = best_multiexp(&coeffs, &bases);
+    let res_base_affine: Point = res_base.into();
+
+    let msm = MultiExp::new(&bases);
+    let mut ctx = MultiExpContext::default();
+    let res = msm.evaluate(&mut ctx, &coeffs, false);
+    let res_affine: Point = res.into();
+
+    assert_eq!(res_base_affine, res_affine);
+}
+
+#[test]
+fn test_multiexp_complete_simple() {
+    let k = 15;
+
+    let (coeffs, bases) = generate_coefficients_and_curvepoints(k);
+
+    let res_base = best_multiexp(&coeffs, &bases);
+    let res_base_affine: Point = res_base.into();
+
+    let msm = MultiExp::new(&bases);
+    let mut ctx = MultiExpContext::default();
+    let res = msm.evaluate(&mut ctx, &coeffs, true);
+    let res_affine: Point = res.into();
+
+    assert_eq!(res_base_affine, res_affine);
+}
+
+#[test]
+fn test_multiexp_small() {
+    let k = 3;
+    let n = 5;
+
+    let (coeffs, bases) = generate_coefficients_and_curvepoints(k);
+
+    let res_base = best_multiexp(&coeffs[..n], &bases[..n]);
+    let res_base_affine: Point = res_base.into();
+
+    let msm = MultiExp::new(&bases[..n]);
+    let mut ctx = MultiExpContext::default();
+    let res = msm.evaluate(&mut ctx, &coeffs[..n], false);
+    let res_affine: Point = res.into();
+
+    assert_eq!(res_base_affine, res_affine);
+}
+
+#[test]
+#[ignore]
+fn test_multiexp_bench() {
+    let min_k = 10;
+    let max_k = 20;
+    let (coeffs, bases) = generate_coefficients_and_curvepoints(max_k);
+    let msm = MultiExp::new(&bases);
+    let mut ctx = MultiExpContext::default();
+    for k in min_k..=max_k {
+        let n = 1 << k;
+        let coeffs = &coeffs[..n];
+
+        let start = start_timer!(|| "msm".to_string());
+        // msm.evaluate(&mut ctx, coeffs, false);
+        msm.evaluate(&mut ctx, coeffs, true);
+        end_timer!(start);
+    }
+}
+
+#[test]
+#[ignore]
+fn test_multiexp_best_c() {
+    let max_k = 21;
+    let (coeffs, bases) = generate_coefficients_and_curvepoints(max_k);
+
+    let msm = MultiExp::new(&bases);
+    let mut ctx = MultiExpContext::default();
+    for k in 4..=max_k {
+        let n = 1 << k;
+        let coeffs = &coeffs[..n];
+        let bases = &bases[..n];
+
+        let res_base = best_multiexp(coeffs, bases);
+        let res_base_affine: Point = res_base.into();
+
+        let mut best_c = 0;
+        let mut best_duration = usize::MAX;
+        for c in 4..=21 {
+            // Allocate memory so it doesn't impact performance
+            ctx.allocate(n, c);
+
+            let start = start_timer!(|| "msm".to_string());
+            let res = msm.evaluate_with(&mut ctx, coeffs, false, c);
+
+            end_timer!(start);
+            // let duration = stop_measure(start);
+
+            // if duration < best_duration {
+            //     best_duration = duration;
+            //     best_c = c;
+            // }
+
+            let res_affine: Point = res.into();
+            assert_eq!(res_base_affine, res_affine);
+        }
+        // println!("{}: {}", n, best_c);
+    }
 }
