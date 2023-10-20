@@ -3,6 +3,7 @@ mod ff_inverse;
 pub mod fft;
 pub mod hash_to_curve;
 pub mod msm;
+pub mod msm_halo2_pr40;
 pub mod multicore;
 #[macro_use]
 pub mod legendre;

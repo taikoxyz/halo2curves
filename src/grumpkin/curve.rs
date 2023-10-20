@@ -10,7 +10,7 @@ use crate::grumpkin::Fq;
 use crate::grumpkin::Fr;
 use crate::hash_to_curve::svdw_hash_to_curve;
 use crate::{
-    batch_add, endo, impl_add_binop_specify_output, impl_binops_additive,
+    batch_add, endo, gen_decompose_scalar, impl_add_binop_specify_output, impl_binops_additive,
     impl_binops_additive_specify_output, impl_binops_multiplicative,
     impl_binops_multiplicative_mixed, impl_sub_binop_specify_output, new_curve_impl,
 };
@@ -40,6 +40,15 @@ new_curve_impl!(
 );
 
 impl CurveAffineExt for G1Affine {
+    gen_decompose_scalar!(ENDO_PARAMS_GRUMPKIN);
+
+    fn endo(&self) -> Self {
+        Self {
+            x: self.x * Self::Base::ZETA,
+            y: self.y,
+        }
+    }
+
     batch_add!();
 
     fn into_coordinates(self) -> (Self::Base, Self::Base) {

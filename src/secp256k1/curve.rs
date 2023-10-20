@@ -72,6 +72,14 @@ impl Secp256k1 {
     const SVDW_Z: Fp = Fp::ONE;
 }
 impl CurveAffineExt for Secp256k1Affine {
+    fn decompose_scalar(_: &Self::ScalarExt) -> (u128, bool, u128, bool) {
+        unimplemented!();
+    }
+
+    fn endo(&self) -> Self {
+        unimplemented!();
+    }
+
     batch_add!();
 
     fn into_coordinates(self) -> (Self::Base, Self::Base) {

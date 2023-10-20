@@ -2,7 +2,7 @@ use crate::arithmetic::mul_512;
 use crate::arithmetic::sbb;
 use crate::{
     arithmetic::{CurveEndo, EndoParameters},
-    endo,
+    endo, gen_decompose_scalar,
 };
 use ff::PrimeField;
 use ff::WithSmallOrderMulGroup;
@@ -10,6 +10,17 @@ pub use pasta_curves::{pallas, vesta, Ep, EpAffine, Eq, EqAffine, Fp, Fq};
 use std::convert::TryInto;
 
 impl crate::CurveAffineExt for EpAffine {
+    gen_decompose_scalar!(ENDO_PARAMS_EP);
+
+    fn endo(&self) -> Self {
+        // private field
+        unimplemented!();
+        // Self {
+        //     x: self.x * Self::Base::ZETA,
+        //     y: self.y,
+        // }
+    }
+
     fn batch_add<const COMPLETE: bool, const LOAD_POINTS: bool>(
         _: &mut [Self],
         _: &[u32],
@@ -23,6 +34,17 @@ impl crate::CurveAffineExt for EpAffine {
 }
 
 impl crate::CurveAffineExt for EqAffine {
+    gen_decompose_scalar!(ENDO_PARAMS_EQ);
+
+    fn endo(&self) -> Self {
+        // private field
+        unimplemented!();
+        // Self {
+        //     x: self.x * Self::Base::ZETA,
+        //     y: self.y,
+        // }
+    }
+    
     fn batch_add<const COMPLETE: bool, const LOAD_POINTS: bool>(
         _: &mut [Self],
         _: &[u32],

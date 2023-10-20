@@ -5,6 +5,7 @@
 //! upstreamed into the `ff` and `group` crates after some refactoring.
 
 use crate::CurveExt;
+pub use pasta_curves::arithmetic::CurveAffine;
 
 pub(crate) struct EndoParameters {
     pub(crate) gamma1: [u64; 4],
@@ -17,7 +18,10 @@ pub trait CurveEndo: CurveExt {
     fn decompose_scalar(e: &Self::ScalarExt) -> (u128, bool, u128, bool);
 }
 
-pub trait CurveAffineExt: pasta_curves::arithmetic::CurveAffine {
+pub trait CurveAffineExt: CurveAffine {
+    fn decompose_scalar(e: &Self::ScalarExt) -> (u128, bool, u128, bool);
+    fn endo(&self) -> Self;
+
     fn batch_add<const COMPLETE: bool, const LOAD_POINTS: bool>(
         points: &mut [Self],
         output_indices: &[u32],
