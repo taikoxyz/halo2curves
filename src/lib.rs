@@ -17,6 +17,7 @@ pub mod secq256k1;
 
 #[macro_use]
 mod derive;
+pub use arithmetic::CurveAffineExt;
 
 // Re-export to simplify down stream dependencies
 pub use ff;

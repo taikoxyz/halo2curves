@@ -4,7 +4,7 @@ use crate::group::{prime::PrimeCurveAffine, Curve, Group as _, GroupEncoding};
 use crate::hash_to_curve::simple_svdw_hash_to_curve;
 use crate::secp256r1::Fp;
 use crate::secp256r1::Fq;
-use crate::{Coordinates, CurveAffine, CurveExt};
+use crate::{Coordinates, CurveAffine, CurveAffineExt, CurveExt};
 use core::cmp;
 use core::fmt::Debug;
 use core::iter::Sum;
@@ -60,9 +60,9 @@ const SECP_B: Fp = Fp::from_raw([
 ]);
 
 use crate::{
-    impl_add_binop_specify_output, impl_binops_additive, impl_binops_additive_specify_output,
-    impl_binops_multiplicative, impl_binops_multiplicative_mixed, impl_sub_binop_specify_output,
-    new_curve_impl,
+    batch_add, impl_add_binop_specify_output, impl_binops_additive,
+    impl_binops_additive_specify_output, impl_binops_multiplicative,
+    impl_binops_multiplicative_mixed, impl_sub_binop_specify_output, new_curve_impl,
 };
 
 new_curve_impl!(
@@ -89,6 +89,19 @@ impl Secp256r1 {
         0x0000000000000000,
         0xffffffff00000001,
     ]);
+}
+
+impl CurveAffineExt for Secp256r1Affine {
+    batch_add!();
+
+    fn into_coordinates(self) -> (Self::Base, Self::Base) {
+        (self.x, self.y)
+    }
+}
+
+#[test]
+fn test_curve() {
+    crate::tests::curve::curve_tests::<Secp256r1>();
 }
 
 #[cfg(test)]
