@@ -17,6 +17,7 @@ use ff::Field;
 use group::prime::PrimeCurveAffine;
 use halo2curves::bn256::{Fr as Scalar, G1Affine as Point};
 use halo2curves::msm::{best_multiexp, multiexp_serial};
+use halo2curves::msm_halo2_pr40::{MultiExp, MultiExpContext};
 use maybe_rayon::current_thread_index;
 use maybe_rayon::prelude::{IntoParallelIterator, ParallelIterator};
 use rand_core::SeedableRng;
@@ -108,6 +109,20 @@ fn msm(c: &mut Criterion) {
                 })
             })
             .sample_size(SAMPLE_SIZE);
+        group
+            .bench_function(BenchmarkId::new("multicore-pr40", k), |b| {
+                assert!(k < 64);
+                let n: usize = 1 << k;
+                b.iter(
+                    || {
+                        let msm = MultiExp::new(&bases[..n]);
+                        let mut ctx = MultiExpContext::default();
+                        // evaluate(_, _, true): assume some might be infinity or P = -Q or P = Q
+                        msm.evaluate(&mut ctx, &coeffs[..n], true)
+                    }
+                );
+            })
+            .sample_size(10);
     }
     group.finish();
 }

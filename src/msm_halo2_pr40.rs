@@ -859,14 +859,22 @@ fn accumulate_buckets<C: CurveAffineExt>(
 
 #[cfg(test)]
 use rand_xorshift::XorShiftRng;
+#[cfg(test)]
 use crate::msm::best_multiexp;
+#[cfg(test)]
 use crate::bn256::{Fr as Scalar, G1Affine as Point};
+#[cfg(test)]
 use ff::Field;
+#[cfg(test)]
 use maybe_rayon::current_thread_index;
+#[cfg(test)]
 use maybe_rayon::prelude::{IntoParallelIterator, ParallelIterator};
+#[cfg(test)]
 use rand_core::SeedableRng;
+#[cfg(test)]
 use std::time::SystemTime;
 
+#[cfg(test)]
 const SEED: [u8; 16] = [
     0x59, 0x62, 0xbe, 0x5d, 0x76, 0x3d, 0x31, 0x8d, 0x17, 0xdb, 0x37, 0x32, 0x54, 0x06, 0xbc, 0xe5,
 ];
@@ -1009,8 +1017,8 @@ fn test_multiexp_best_c() {
         let res_base = best_multiexp(coeffs, bases);
         let res_base_affine: Point = res_base.into();
 
-        let mut best_c = 0;
-        let mut best_duration = usize::MAX;
+        let mut _best_c = 0;
+        let mut _best_duration = usize::MAX;
         for c in 4..=21 {
             // Allocate memory so it doesn't impact performance
             ctx.allocate(n, c);
@@ -1021,14 +1029,14 @@ fn test_multiexp_best_c() {
             end_timer!(start);
             // let duration = stop_measure(start);
 
-            // if duration < best_duration {
-            //     best_duration = duration;
-            //     best_c = c;
+            // if duration < _best_duration {
+            //     _best_duration = duration;
+            //     _best_c = c;
             // }
 
             let res_affine: Point = res.into();
             assert_eq!(res_base_affine, res_affine);
         }
-        // println!("{}: {}", n, best_c);
+        // println!("{}: {}", n, _best_c);
     }
 }
