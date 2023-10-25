@@ -4,6 +4,9 @@ pub mod fft;
 pub mod hash_to_curve;
 pub mod msm;
 pub mod msm_halo2_pr40;
+#[macro_use]
+pub mod msm_halo2curves_pr29;
+pub mod msm_halo2curves_pr29_round;
 pub mod multicore;
 #[macro_use]
 pub mod legendre;

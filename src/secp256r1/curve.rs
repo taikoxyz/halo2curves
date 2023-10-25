@@ -105,6 +105,22 @@ impl CurveAffineExt for Secp256r1Affine {
     fn into_coordinates(self) -> (Self::Base, Self::Base) {
         (self.x, self.y)
     }
+    #[inline(always)]
+    fn x(self) -> Self::Base {
+        self.x
+    }
+    #[inline(always)]
+    fn y(self) -> Self::Base {
+        self.y
+    }
+    #[inline(always)]
+    fn mut_x(&mut self) -> &mut Self::Base {
+        &mut self.x
+    }
+    #[inline(always)]
+    fn mut_y(&mut self) -> &mut Self::Base {
+        &mut self.y
+    }
 }
 
 #[test]

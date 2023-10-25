@@ -14,10 +14,11 @@ extern crate criterion;
 
 use criterion::{BenchmarkId, Criterion};
 use ff::Field;
-use group::prime::PrimeCurveAffine;
-use halo2curves::bn256::{Fr as Scalar, G1Affine as Point};
+use group::{Group, prime::PrimeCurveAffine};
+use halo2curves::bn256::{Fr as Scalar, G1Affine as Point, G1 as PointPrj};
 use halo2curves::msm::{best_multiexp, multiexp_serial};
 use halo2curves::msm_halo2_pr40::{MultiExp, MultiExpContext};
+use halo2curves::msm_halo2curves_pr29::MSM;
 use maybe_rayon::current_thread_index;
 use maybe_rayon::prelude::{IntoParallelIterator, ParallelIterator};
 use rand_core::SeedableRng;
@@ -110,7 +111,7 @@ fn msm(c: &mut Criterion) {
             })
             .sample_size(SAMPLE_SIZE);
         group
-            .bench_function(BenchmarkId::new("multicore-pr40", k), |b| {
+            .bench_function(BenchmarkId::new("multicore-halo2-pr40", k), |b| {
                 assert!(k < 64);
                 let n: usize = 1 << k;
                 b.iter(
@@ -123,6 +124,19 @@ fn msm(c: &mut Criterion) {
                 );
             })
             .sample_size(10);
+        // TODO: batch affine needs to handle exceptional points
+        // group
+        //     .bench_function(BenchmarkId::new("multicore-halo2curves-pr29", k), |b| {
+        //         assert!(k < 64);
+        //         let n: usize = 1 << k;
+        //         b.iter(
+        //             || {
+        //                 let mut r = PointPrj::identity();
+        //                 MSM::evaluate(&coeffs[..n], &bases[..n], &mut r)
+        //             }
+        //         );
+        //     })
+        //     .sample_size(10);
     }
     group.finish();
 }

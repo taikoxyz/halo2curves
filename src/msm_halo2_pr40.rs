@@ -880,7 +880,7 @@ const SEED: [u8; 16] = [
 ];
 
 #[cfg(test)]
-fn generate_coefficients_and_curvepoints(k: u8) -> (Vec<Scalar>, Vec<Point>) {
+pub fn generate_coefficients_and_curvepoints(k: u8) -> (Vec<Scalar>, Vec<Point>) {
     let n: u64 = {
         assert!(k < 64);
         1 << k

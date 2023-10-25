@@ -37,6 +37,17 @@ pub trait CurveAffineExt: CurveAffine {
         let coordinates = self.coordinates().unwrap();
         (*coordinates.x(), *coordinates.y())
     }
+
+    // Not having fields in traits is VERY annoying
+    // https://github.com/zkcrypto/group/issues/30
+    // https://internals.rust-lang.org/t/fields-in-traits/6933
+    //
+    // Will a copy be avoided?
+    fn x(self) -> Self::Base;
+    fn y(self) -> Self::Base;
+    // Java would be proud
+    fn mut_x(&mut self) -> &mut Self::Base;
+    fn mut_y(&mut self) -> &mut Self::Base;
 }
 
 /// Compute a + b + carry, returning the result and the new carry over.

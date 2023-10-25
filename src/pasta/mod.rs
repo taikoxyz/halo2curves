@@ -31,6 +31,24 @@ impl crate::CurveAffineExt for EpAffine {
     ) {
         unimplemented!();
     }
+    fn x(self) -> Self::Base {
+        // &mut self.x
+        unimplemented!();
+    }
+    fn y(self) -> Self::Base {
+        // &mut self.y
+        unimplemented!();
+    }
+    #[inline(always)]
+    fn mut_x(&mut self) -> &mut Self::Base {
+        // &mut self.x
+        unimplemented!();
+    }
+    #[inline(always)]
+    fn mut_y(&mut self) -> &mut Self::Base {
+        // &mut self.y
+        unimplemented!();
+    }
 }
 
 impl crate::CurveAffineExt for EqAffine {
@@ -53,6 +71,26 @@ impl crate::CurveAffineExt for EqAffine {
         _: &[Self],
         _: &[u32],
     ) {
+        unimplemented!();
+    }
+    #[inline(always)]
+    fn x(self) -> Self::Base {
+        // &self.x
+        unimplemented!();
+    }
+    #[inline(always)]
+    fn y(self) -> Self::Base {
+        // &self.y
+        unimplemented!();
+    }
+    #[inline(always)]
+    fn mut_x(&mut self) -> &mut Self::Base {
+        // &mut self.x
+        unimplemented!();
+    }
+    #[inline(always)]
+    fn mut_y(&mut self) -> &mut Self::Base {
+        // &mut self.y
         unimplemented!();
     }
 }
