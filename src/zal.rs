@@ -37,13 +37,14 @@
 //! - The curve (JIT-compiled backend)
 
 #[allow(deprecated)]
+use core::fmt::Debug;
 use crate::msm::best_multiexp;
 use pasta_curves::arithmetic::CurveAffine;
 
 // The ZK Accel Layer API
 // ---------------------------------------------------
 
-pub trait ZalEngine {}
+pub trait ZalEngine: Debug {}
 
 pub trait MsmAccel<C: CurveAffine>: ZalEngine {
     fn msm(&self, coeffs: &[C::Scalar], base: &[C]) -> C::Curve;
@@ -52,6 +53,7 @@ pub trait MsmAccel<C: CurveAffine>: ZalEngine {
 // ZAL using Halo2curves as a backend
 // ---------------------------------------------------
 
+#[derive(Debug)]
 pub struct H2cEngine;
 
 impl H2cEngine {
