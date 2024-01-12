@@ -49,37 +49,37 @@ pub trait ZalEngine: Debug {}
 pub trait MsmAccel<C: CurveAffine>: ZalEngine {
     fn msm(&self, coeffs: &[C::Scalar], base: &[C]) -> C::Curve;
 
-    // Caching API
-    // -------------------------------------------------
-    // From here we propose an extended API
-    // that allows reusing coeffs and/or the base points
-    //
-    // This is inspired by CuDNN API (Nvidia GPU)
-    // and oneDNN API (CPU, OpenCL) https://docs.nvidia.com/deeplearning/cudnn/api/index.html#cudnn-ops-infer-so-opaque
-    // usage of descriptors
-    //
-    // https://github.com/oneapi-src/oneDNN/blob/master/doc/programming_model/basic_concepts.md
-    //
-    // Descriptors are opaque pointers that hold the input in a format suitable for the accelerator engine.
-    // They may be:
-    // - Input moved on accelerator device (only once for repeated calls)
-    // - Endianess conversion
-    // - Converting from Montgomery to Canonical form
-    // - Input changed from Projective to Jacobian coordinates or even to a Twisted Edwards curve.
-    // - other form of expensive preprocessing
-    type CoeffsDescriptor<'c>;
-    type BaseDescriptor<'b>;
+    // // Caching API
+    // // -------------------------------------------------
+    // // From here we propose an extended API
+    // // that allows reusing coeffs and/or the base points
+    // //
+    // // This is inspired by CuDNN API (Nvidia GPU)
+    // // and oneDNN API (CPU, OpenCL) https://docs.nvidia.com/deeplearning/cudnn/api/index.html#cudnn-ops-infer-so-opaque
+    // // usage of descriptors
+    // //
+    // // https://github.com/oneapi-src/oneDNN/blob/master/doc/programming_model/basic_concepts.md
+    // //
+    // // Descriptors are opaque pointers that hold the input in a format suitable for the accelerator engine.
+    // // They may be:
+    // // - Input moved on accelerator device (only once for repeated calls)
+    // // - Endianess conversion
+    // // - Converting from Montgomery to Canonical form
+    // // - Input changed from Projective to Jacobian coordinates or even to a Twisted Edwards curve.
+    // // - other form of expensive preprocessing
+    // type CoeffsDescriptor<'c>;
+    // type BaseDescriptor<'b>;
 
-    fn get_coeffs_descriptor<'c>(&self, coeffs: &'c [C::Scalar]) -> Self::CoeffsDescriptor<'c>;
-    fn get_base_descriptor<'b>(&self, base: &'b [C]) -> Self::BaseDescriptor<'b>;
+    // fn get_coeffs_descriptor<'c>(&self, coeffs: &'c [C::Scalar]) -> Self::CoeffsDescriptor<'c>;
+    // fn get_base_descriptor<'b>(&self, base: &'b [C]) -> Self::BaseDescriptor<'b>;
 
-    fn msm_with_cached_scalars(&self, coeffs: &Self::CoeffsDescriptor<'_>, base: &[C]) -> C::Curve;
+    // fn msm_with_cached_scalars(&self, coeffs: &Self::CoeffsDescriptor<'_>, base: &[C]) -> C::Curve;
 
-    fn msm_with_cached_base(&self, coeffs: &[C::Scalar], base: &Self::BaseDescriptor<'_>) -> C::Curve;
+    // fn msm_with_cached_base(&self, coeffs: &[C::Scalar], base: &Self::BaseDescriptor<'_>) -> C::Curve;
 
-    fn msm_with_cached_inputs(&self, coeffs: &Self::CoeffsDescriptor<'_>, base: &Self::BaseDescriptor<'_>) -> C::Curve;
-      // Execute MSM according to descriptors
-      // Unsure of naming, msm_with_cached_inputs, msm_apply, msm_cached, msm_with_descriptors, ...
+    // fn msm_with_cached_inputs(&self, coeffs: &Self::CoeffsDescriptor<'_>, base: &Self::BaseDescriptor<'_>) -> C::Curve;
+    //   // Execute MSM according to descriptors
+    //   // Unsure of naming, msm_with_cached_inputs, msm_apply, msm_cached, msm_with_descriptors, ...
 }
 
 // ZAL using Halo2curves as a backend
@@ -104,31 +104,31 @@ impl<C: CurveAffine> MsmAccel<C> for H2cEngine {
         best_multiexp(coeffs, bases)
     }
 
-    // Caching API
-    // -------------------------------------------------
+    // // Caching API
+    // // -------------------------------------------------
 
-    type CoeffsDescriptor<'c> = H2cMsmCoeffsDesc<'c, C>;
-    type BaseDescriptor<'b> = H2cMsmBaseDesc<'b, C>;
+    // type CoeffsDescriptor<'c> = H2cMsmCoeffsDesc<'c, C>;
+    // type BaseDescriptor<'b> = H2cMsmBaseDesc<'b, C>;
 
-    fn get_coeffs_descriptor<'c>(&self, coeffs: &'c [C::Scalar]) -> Self::CoeffsDescriptor<'c>{
-        // Do expensive device/library specific preprocessing here
-        Self::CoeffsDescriptor { raw: coeffs }
-    }
-    fn get_base_descriptor<'b>(&self, base: &'b [C]) -> Self::BaseDescriptor<'b> {
-        Self::BaseDescriptor { raw: base }
-    }
+    // fn get_coeffs_descriptor<'c>(&self, coeffs: &'c [C::Scalar]) -> Self::CoeffsDescriptor<'c>{
+    //     // Do expensive device/library specific preprocessing here
+    //     Self::CoeffsDescriptor { raw: coeffs }
+    // }
+    // fn get_base_descriptor<'b>(&self, base: &'b [C]) -> Self::BaseDescriptor<'b> {
+    //     Self::BaseDescriptor { raw: base }
+    // }
 
-    fn msm_with_cached_scalars(&self, coeffs: &Self::CoeffsDescriptor<'_>, base: &[C]) -> C::Curve {
-        best_multiexp(coeffs.raw, base)
-    }
+    // fn msm_with_cached_scalars(&self, coeffs: &Self::CoeffsDescriptor<'_>, base: &[C]) -> C::Curve {
+    //     best_multiexp(coeffs.raw, base)
+    // }
 
-    fn msm_with_cached_base(&self, coeffs: &[C::Scalar], base: &Self::BaseDescriptor<'_>) -> C::Curve {
-        best_multiexp(coeffs, base.raw)
-    }
+    // fn msm_with_cached_base(&self, coeffs: &[C::Scalar], base: &Self::BaseDescriptor<'_>) -> C::Curve {
+    //     best_multiexp(coeffs, base.raw)
+    // }
 
-    fn msm_with_cached_inputs(&self, coeffs: &Self::CoeffsDescriptor<'_>, base: &Self::BaseDescriptor<'_>) -> C::Curve {
-        best_multiexp(coeffs.raw, base.raw)
-    }
+    // fn msm_with_cached_inputs(&self, coeffs: &Self::CoeffsDescriptor<'_>, base: &Self::BaseDescriptor<'_>) -> C::Curve {
+    //     best_multiexp(coeffs.raw, base.raw)
+    // }
 }
 
 impl Default for H2cEngine {
@@ -178,14 +178,14 @@ mod test {
 
             assert_eq!(e0, e1);
 
-            // Caching API
-            // -----------
-            let t2 = start_timer!(|| format!("H2cEngine msm cached base k={}", k));
-            let base_descriptor = engine.get_base_descriptor(points);
-            let e2 = engine.msm_with_cached_base(scalars, &base_descriptor);
-            end_timer!(t2);
+            // // Caching API
+            // // -----------
+            // let t2 = start_timer!(|| format!("H2cEngine msm cached base k={}", k));
+            // let base_descriptor = engine.get_base_descriptor(points);
+            // let e2 = engine.msm_with_cached_base(scalars, &base_descriptor);
+            // end_timer!(t2);
 
-            assert_eq!(e0, e2)
+            // assert_eq!(e0, e2)
         }
     }
 
